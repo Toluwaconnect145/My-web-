@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admission Simulation Tool</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+body { background:#0A1C3C; color:white; font-family:sans-serif; }
+
+/* SMOOTH TICKER */
+.ticker { overflow:hidden; white-space:nowrap; background:black; border-bottom:2px solid gold; }
+.ticker span {
+  display:inline-block;
+  padding-left:100%;
+  will-change: transform;
+  transform: translateZ(0);
+  animation: scroll 25s linear infinite;
+}
+@keyframes scroll {
+  0% { transform:translateX(0); }
+  100% { transform:translateX(-100%); }
+}
+
+/* CARD */
+.card { background:rgba(255,255,255,0.05); border-radius:20px; padding:20px; }
+
+/* RESULT */
+#resultBox { display:none; }
+</style>
+</head>
+
+<body class="flex flex-col items-center">
+
+<!-- SLOGAN -->
+<div class="ticker w-full">
+<span class="text-yellow-400 text-xs font-bold">
+OAUSTECH • FOR SOCIETY AND DEVELOPMENT • EXCELLENCE IN SCIENCE & TECHNOLOGY •
+</span>
+</div>
+
+<!-- LOGO -->
+<div class="mt-6">
+<img src="./logo.png" class="w-24 h-24 rounded-full border-4 border-yellow-500 bg-white p-1">
+</div>
+
+<h1 class="text-2xl font-bold mt-3">
+ADMISSION <span class="text-yellow-400">SIMULATION</span>
+</h1>
+
+<p class="text-xs text-gray-400 text-center px-6 mt-2">
+Independent student-built simulation tool. Not affiliated with any institution.
+Final admission decisions are made solely by University Management.
+</p>
+
+<!-- MAIN -->
+<div class="card w-full max-w-sm mt-6">
+
+<select id="course" class="w-full p-3 bg-black rounded">
+
+<optgroup label="SCIENCE">
+<option value="200">Computer Science</option>
+<option value="195">Biochemistry</option>
+<option value="190">Microbiology</option>
+<option value="185">Industrial Chemistry</option>
+<option value="180">Mathematics</option>
+<option value="175">Statistics</option>
+<option value="170">Physics</option>
+</optgroup>
+
+<optgroup label="ENGINEERING">
+<option value="200">Mechanical Engineering</option>
+<option value="195">Electrical Engineering</option>
+<option value="190">Civil Engineering</option>
+<option value="185">Chemical Engineering</option>
+</optgroup>
+
+<optgroup label="HEALTH">
+<option value="225">Nursing Science</option>
+<option value="215">Medical Laboratory Science</option>
+<option value="200">Public Health</option>
+</optgroup>
+
+<optgroup label="MANAGEMENT">
+<option value="200">Accounting</option>
+<option value="195">Business Administration</option>
+<option value="190">Economics</option>
+</optgroup>
+
+</select>
+
+<!-- INPUT FIXED -->
+<input id="score" type="number" inputmode="numeric"
+placeholder="Enter Score"
+class="w-full mt-4 p-3 text-center text-2xl bg-black rounded-lg outline-none focus:ring-2 focus:ring-yellow-500 transition">
+
+<button onclick="runSimulation()" class="w-full mt-4 bg-red-700 p-3 rounded font-bold">
+Run Simulation
+</button>
+
+<!-- RESULT -->
+<div id="resultBox" class="mt-4 p-4 bg-black/40 rounded">
+<h2 id="status" class="font-bold text-lg"></h2>
+<p id="message" class="text-sm mt-2 whitespace-pre-line"></p>
+
+<button onclick="downloadPDF()" class="mt-4 w-full bg-yellow-600 p-3 rounded font-bold">
+Download Report
+</button>
+</div>
+
+</div>
+
+<!-- CONTACT -->
+<div class="grid grid-cols-2 gap-4 mt-6 mb-10 w-full max-w-sm">
+<div class="bg-black p-4 rounded text-center">
+<p class="text-green-400 text-sm">Technical Support</p>
+<p class="text-xs text-gray-400">Feedback & Assistance</p>
+</div>
+<div class="bg-black p-4 rounded text-center">
+<p class="text-blue-400 text-sm">OAUSTECH Contact</p>
+<p class="text-xs text-gray-400">Official Channel</p>
+</div>
+</div>
+
+<script>
+
+function runSimulation(){
+const score=parseInt(document.getElementById("score").value);
+
+if(isNaN(score)||score<0||score>400){
+showResult("Invalid Score","Enter a valid UTME score (0–400)","red");
+return;
+}
+
+simulateLoading();
+}
+
+/* OPTIMIZED LOADING */
+function simulateLoading(){
+const steps=[
+"Accessing Registry...",
+"Evaluating Academic Metrics...",
+"Comparing Historical Data...",
+"Finalizing Simulation..."
+];
+
+let i=0;
+
+function nextStep(){
+  if(i < steps.length){
+    requestAnimationFrame(()=>{
+      showResult("Processing",steps[i],"yellow");
+      i++;
+      setTimeout(nextStep,800);
+    });
+  } else {
+    processResult();
+  }
+}
+
+nextStep();
+}
+
+/* RESULT ENGINE */
+function processResult(){
+const score=parseInt(document.getElementById("score").value);
+const select=document.getElementById("course");
+const cutoff=parseInt(select.value);
+const courseName=select.options[select.selectedIndex].text;
+
+let chance=Math.min(95,Math.max(5,(score-cutoff+50)));
+
+let status,color,message;
+
+if(score>=cutoff){
+status="Competitive";
+color="green";
+message="Your score is within competitive range for "+courseName;
+}else{
+status="Low Probability";
+color="yellow";
+message="Your score is below the competitive range for "+courseName;
+}
+
+let alt=getAlternatives(score);
+
+showResult(status,message+" | Chance: "+chance+"%",color,alt);
+
+window.data={score,courseName,status,chance,message,alt};
+}
+
+/* SMART ALTERNATIVES */
+function getAlternatives(score){
+if(score>=200) return "Suggested: Biochemistry, Microbiology";
+if(score>=180) return "Suggested: Industrial Chemistry, Physics";
+if(score>=160) return "Suggested: Mathematics, Statistics";
+return "Suggested: Basic Sciences";
+}
+
+/* SMOOTH RESULT */
+function showResult(title,text,color,alt=""){
+const box=document.getElementById("resultBox");
+const status=document.getElementById("status");
+const message=document.getElementById("message");
+
+if(box.style.display !== "block"){
+  box.style.display="block";
+}
+
+status.textContent=title;
+status.className="font-bold text-lg text-"+color+"-400";
+
+message.textContent=text+"\n"+alt;
+}
+
+/* PDF */
+function downloadPDF(){
+const {jsPDF}=window.jspdf;
+const doc=new jsPDF();
+const d=window.data;
+
+doc.setFontSize(14);
+doc.text("ADMISSION SIMULATION REPORT",105,20,null,null,"center");
+
+doc.setFontSize(10);
+doc.text("Score: "+d.score,20,50);
+doc.text("Course: "+d.courseName,20,60);
+doc.text("Status: "+d.status,20,70);
+doc.text("Chance: "+d.chance+"%",20,80);
+
+doc.text("Analysis:",20,100);
+doc.text(d.message,20,110,{maxWidth:170});
+
+doc.text("Recommendation:",20,130);
+doc.text(d.alt,20,140);
+
+doc.setFontSize(8);
+doc.text(
+"Disclaimer: This is a simulation tool. Final admission decisions are made by University Management.",
+20,180,{maxWidth:170}
+);
+
+doc.text("Powered by Zetra Lab",105,280,null,null,"center");
+
+doc.save("Admission_Report.pdf");
+}
+
+</script>
+
+</body>
+</html>
